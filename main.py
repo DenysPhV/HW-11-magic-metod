@@ -1,6 +1,10 @@
 import functools
 from classes import * 
+import datetime
+
 CONTACTS_ARRAY = AddressBook()
+pages = []
+
 
 def error_handler(func):
     @functools.wraps(func)
@@ -11,12 +15,13 @@ def error_handler(func):
             result = func(*args, **kwargs)
         except TypeError:
             print("""You have not entered all data!!!
---------------------------------------------------------------------------------------------------
-for adding new phone number please input:   add name tel.      (example: add Denys 345-45-45)
+-----------------------------------------------------------------------------------------------------------------------
+for adding new phone number please input:   add name tel.                   (example: add Denys 345-45-45)
 for change please input:                    change name old tel. new tel.   (example: change Denys 234-57-89 584-25-12)
-for reading please input:                   phone name         (example: phone Denys)
-for delete number:                          delete name tel.   (example: phone Denys 345-45-45)
---------------------------------------------------------------------------------------------------""")
+for reading please input:                   phone name                      (example: phone Denys)
+for delete number:                          delete name tel.                (example: phone Denys 345-45-45)
+-----------------------------------------------------------------------------------------------------------------------
+""")
         except KeyError:
             print("This user was not found in the phone book!")
         except ValueError:
@@ -34,11 +39,13 @@ def welcome_bot(func):
         return func(*args, **kwargs)
     return inner
 
+
 #add name and number in dict
 @error_handler
 def attach(name: str, number: str):
     user_name = Name(name)
     phone = Phone(number)
+
     rec:Record = CONTACTS_ARRAY.get(user_name.value)
 
     if rec:
@@ -48,6 +55,15 @@ def attach(name: str, number: str):
     rec = Record(user_name, phone)
     CONTACTS_ARRAY.add_record(rec)
     return f'Contact with name {name} and phone {number} add successful'
+   
+@error_handler
+def attach_birthday(name, birthday):
+    user_name = Name(name)
+    when_born = Birthday(birthday)
+    rec:Record = CONTACTS_ARRAY.get(user_name.value)
+
+    if rec:
+        rec.days_to_birthday(when_born)
    
 
 @error_handler
@@ -63,15 +79,15 @@ def delete(name: str, number: str):
 @error_handler  # change number contact
 def change(name: str, old_number:str, new_number: str):
 
-    user_name = Name(name)
-    old_number = Phone(old_number)
-    new_number = Phone(new_number)
+    user_name = Name(name) 
+    old = Phone(old_number)
+    new = Phone(new_number)
     rec:Record = CONTACTS_ARRAY.get(user_name.value)
 
     if old_number:
-        return rec.change_phone_field(old_number, new_number)
+        return rec.change_phone_field(old, new)
 
-    
+
 # take phone from dict 
 @error_handler
 def get_phone(name: str):
@@ -81,8 +97,9 @@ def get_phone(name: str):
 # ask get phone give phone by name
 @error_handler
 def show_phone(name: str):
+    user_name = Name(name)
 
-    look_phone = get_phone(name)
+    look_phone = get_phone(user_name)
     if look_phone: 
         return look_phone
     
@@ -101,18 +118,32 @@ def say_good_bye():
 def no_command(*args):
     return 'Unknown command. Try again'
 
+
+@error_handler
+def page_pagination(*argv):
+    gen = CONTACTS_ARRAY.iteration(*argv)
+
+    for key in gen:
+        pages.append(key)
+    print(f"page {int(argv[0][0])} of {len(pages)}")
+
+    if pages:
+      return f"this pagination don't work"
+
 COMMAND_ARRAY = {
     "hello": lambda: print("May I help you?"),
     "add": attach,
+    "birthday": attach_birthday,
     "change": change,
     "delete": delete,
     "phone": show_phone,
     "show all":reader,
-    'exit': say_good_bye,
-	'bye': say_good_bye,
-	'quit': say_good_bye,
-	'close': say_good_bye,
-	'.': say_good_bye
+    "page": page_pagination,
+    "exit": say_good_bye,
+	"bye": say_good_bye,
+	"quit": say_good_bye,
+	"close": say_good_bye,
+	".": say_good_bye
 }
 
 

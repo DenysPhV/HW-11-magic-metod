@@ -15,43 +15,35 @@ class Field:
 
 # add for hw 11
 class Birthday(Field):
-
-    @property
-    def value(self):
-        return self.value
-
-    @value.setter
-    def value(self, val: str):
-        data = val.split("-")
-
-        if not "".join(data).isdigit():
-            raise ValueError
-
-        if int(data[0]) > datetime.now().year or int(data[1]) > 12 or int(data[2]) > 30:
-            raise ValueError
-        self.value = val
-
-class Name(Field):
-    pass
-
-class Phone(Field):
     # add for hw 11
     @property
-    def value(self):
-        return self.value
+    def born(self):
+        return f"This class Birthday {self.__born}"
 
-    @value.setter
-    def value(self, val: str):
-        if not len(val) == 10 and not len(val) == 13 and not val.lstrip('+').isdigit():
-            raise ValueError
+    @born.setter
+    def born(self, value: str):
+        if not value:
+            raise ValueError("Birthday is not attaching")
+        self.__born = value
+            
 
-        if len(val) == 10:
-            val = "+38" + val
+class Name(Field):
+   pass
 
-        if not val[3] == "0":
-            raise ValueError
-        self.value = val
 
+class Phone(Field):
+    # pass
+    # add for hw 11
+    @property
+    def phone_value(self):
+        return f"Bad phone number {self.__phone_value}"
+    
+    @phone_value.setter
+    def phone_value(self, value: str):
+        if value:
+            raise ValueError("Number is not correct")
+        self.__phone_value = value
+    
 
 class Record:
     def __init__(self, name: Name, phone: Phone = None, birthday: Birthday = None):
@@ -83,16 +75,25 @@ class Record:
 
 # add for hw 11
     def days_to_birthday(self):
-        if not self.birthday.value:
-           print("Birthday not entered")
-        else:
-            date_first = self.birthday.value.split("-")
-            date = datetime(year=datetime.now().year, month=int(date_first[1]), day=int(date_first[2]))
-            date_now = datetime.now()
-            dat = date - date_now
-            return dat.days
+        current_date = datetime.now()
 
-     
+        if self.birthday is not None:
+           birthday: datetime.date = self.birthday.value.date()
+           next_birthday = datetime(
+               year=current_date.year, 
+               month=birthday.month, 
+               day=birthday.day
+               ).date()
+           if next_birthday < current_date:
+               next_birthday = datetime(
+                   year=next_birthday.year + 1,
+                   month=next_birthday.month,
+                   day=next_birthday.day
+                   )
+               return (next_birthday - current_date).days
+           return None
+
+       
 class AddressBook(UserDict):
     index = 0 # add for hw 11
 
